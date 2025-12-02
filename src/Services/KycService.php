@@ -70,36 +70,51 @@ class KycService
         
         $result = $this->provider->checkStatus($verification->reference_id);
         
-        // Update local status based on provider response
-        $updateData = [];
-        
+        // Update local status if provider returned new status
         if (isset($result['status'])) {
-            $newStatus = match ($result['status']) {
-                'verified' => KycStatus::Verified,
-                'rejected' => KycStatus::Rejected,
-                'processing' => KycStatus::Processing,
-                'expired' => KycStatus::Expired,
-                default => KycStatus::Pending,
-            };
-            
-            // Only update if status changed
-            if ($newStatus !== $verification->status) {
-                $updateData['status'] = $newStatus;
-                
-                if ($result['status'] === 'verified') {
-                    $updateData['verified_at'] = Carbon::now();
-                }
-                
-                if ($result['status'] === 'rejected' && isset($result['message'])) {
-                    $updateData['rejection_reason'] = $result['message'];
-                }
-                
-                if (!empty($updateData)) {
-                    $this->repository->update($verification, $updateData);
-                }
-            }
+            $this->updateVerificationStatusFromProvider($verification, $result);
         }
         
         return $result;
+    }
+
+    /**
+     * Update verification status based on provider response
+     */
+    private function updateVerificationStatusFromProvider(KycVerification $verification, array $result): void
+    {
+        $newStatus = $this->mapProviderStatus($result['status']);
+        
+        // Skip if status hasn't changed
+        if ($newStatus === $verification->status) {
+            return;
+        }
+        
+        $updateData = ['status' => $newStatus];
+        
+        // Add additional fields based on status
+        if ($newStatus === KycStatus::Verified) {
+            $updateData['verified_at'] = Carbon::now();
+        }
+        
+        if ($newStatus === KycStatus::Rejected && isset($result['message'])) {
+            $updateData['rejection_reason'] = $result['message'];
+        }
+        
+        $this->repository->update($verification, $updateData);
+    }
+
+    /**
+     * Map provider status string to KycStatus enum
+     */
+    private function mapProviderStatus(string $providerStatus): KycStatus
+    {
+        return match ($providerStatus) {
+            'verified' => KycStatus::Verified,
+            'rejected' => KycStatus::Rejected,
+            'processing' => KycStatus::Processing,
+            'expired' => KycStatus::Expired,
+            default => KycStatus::Pending,
+        };
     }
 }
