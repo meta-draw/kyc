@@ -43,31 +43,6 @@ class KycService
         return $verification;
     }
 
-    /**
-     * Process documents after upload
-     */
-    public function processDocumentUpload(KycVerification $verification): void
-    {
-        if ($verification->hasAllDocuments()) {
-            if ($this->provider && $verification->reference_id) {
-                // Submit documents to third-party provider
-                $result = $this->provider->submitDocuments(
-                    $verification->reference_id,
-                    [
-                        'id_front_url' => $verification->id_front_url,
-                        'id_back_url' => $verification->id_back_url,
-                    ]
-                );
-                
-                if ($result['success']) {
-                    $this->repository->updateStatus($verification, 'processing');
-                }
-            } else {
-                // No provider configured, just mark as processing
-                $this->repository->updateStatus($verification, 'processing');
-            }
-        }
-    }
 
     /**
      * Check verification status with third-party provider

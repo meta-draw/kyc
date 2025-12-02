@@ -95,10 +95,6 @@ class KycVerificationController extends Controller
             // Update the URL in the verification record
             $this->repository->updateDocumentUrl($verification, $request->validated()['type'], $url);
             
-            // Process document upload (submit to third-party if ready)
-            $verification = $verification->fresh();
-            $this->kycService->processDocumentUpload($verification);
-            
             return response()->json([
                 'isSuccess' => true,
                 'message' => 'Document uploaded successfully',

@@ -198,15 +198,6 @@ class YourKycProvider implements KycProviderInterface
             'message' => 'Verification completed'
         ];
     }
-
-    public function submitDocuments(string $referenceId, array $documents): array
-    {
-        // Submit documents to your provider
-        return [
-            'success' => true,
-            'message' => 'Documents submitted'
-        ];
-    }
 }
 ```
 
