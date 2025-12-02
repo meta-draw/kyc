@@ -3,7 +3,8 @@
 namespace MetaDraw\Kyc\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use MetaDraw\Kyc\Repositories\KycVerificationRepository;
+use MetaDraw\Kyc\Models\KycVerification;
+use MetaDraw\Kyc\Enums\KycStatus;
 
 class KycVerificationRequest extends FormRequest
 {
@@ -32,9 +33,10 @@ class KycVerificationRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        // Check if user already has an active verification
-        $repository = app(KycVerificationRepository::class);
-        $existingVerification = $repository->findActiveByUserId($this->user()->id);
+        // Check if user already has active or verified KYC
+        $hasExisting = KycVerification::where('user_id', $this->user()->id)
+            ->whereIn('status', [KycStatus::Pending, KycStatus::Processing, KycStatus::Verified])
+            ->exists();
         
         $this->merge([
             'nationality' => strtoupper($this->nationality ?? ''),
@@ -47,7 +49,7 @@ class KycVerificationRequest extends FormRequest
             'document_number' => $this->documentNumber ?? '',
             'document_issue_date' => $this->documentIssueDate ?? '',
             'document_expiry_date' => $this->documentExpiryDate ?? '',
-            'no_existing_verification' => $existingVerification ? false : true,
+            'no_existing_verification' => !$hasExisting,
         ]);
     }
 }
