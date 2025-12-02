@@ -27,9 +27,29 @@ class KycService
         $result = $this->provider->verify($verification);
         
         if ($result['success'] && isset($result['data']['reference_id'])) {
-            $this->repository->update($verification, [
+            $updateData = [
                 'reference_id' => $result['data']['reference_id'],
-            ]);
+            ];
+            
+            // Update status based on provider response
+            if (isset($result['status'])) {
+                $updateData['status'] = match ($result['status']) {
+                    'verified' => KycStatus::Verified,
+                    'rejected' => KycStatus::Rejected,
+                    'processing' => KycStatus::Processing,
+                    default => KycStatus::Pending,
+                };
+                
+                if ($result['status'] === 'verified') {
+                    $updateData['verified_at'] = now();
+                }
+                
+                if ($result['status'] === 'rejected' && isset($result['message'])) {
+                    $updateData['rejection_reason'] = $result['message'];
+                }
+            }
+            
+            $this->repository->update($verification, $updateData);
         }
         
         return $result;
