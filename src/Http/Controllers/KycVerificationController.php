@@ -5,7 +5,6 @@ namespace MetaDraw\Kyc\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 use MetaDraw\Kyc\Http\Requests\KycVerificationRequest;
 use MetaDraw\Kyc\Http\Requests\KycDocumentUploadRequest;
 use MetaDraw\Kyc\Services\KycService;
@@ -26,22 +25,16 @@ class KycVerificationController extends Controller
     public function store(KycVerificationRequest $request): JsonResponse
     {
         try {
-            DB::beginTransaction();
-            
             $verification = $this->kycService->createVerification(
                 $request->user(),
                 $request->validated()
             );
-            
-            DB::commit();
             
             return response()->json([
                 'isSuccess' => true,
                 'message' => 'KYC verification submitted successfully',
             ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-            
             return response()->json([
                 'isSuccess' => false,
                 'message' => 'Failed to submit KYC verification: ' . $e->getMessage(),
