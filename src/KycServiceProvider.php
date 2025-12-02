@@ -43,11 +43,8 @@ class KycServiceProvider extends ServiceProvider
         }
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'kyc');
         
         if (config('kyc.routes.enabled', true)) {
-            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
-            
             Route::prefix(config('kyc.routes.prefix', 'api'))
                 ->name(config('kyc.routes.name', 'kyc.'))
                 ->group(function () {

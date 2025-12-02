@@ -87,7 +87,7 @@ Request body:
 Response:
 ```json
 {
-    "isSuccess": true,
+    "is_success": true,
     "message": "KYC verification submitted successfully"
 }
 ```
@@ -118,7 +118,7 @@ Form data:
 Response:
 ```json
 {
-    "isSuccess": true,
+    "is_success": true,
     "message": "Document uploaded successfully"
 }
 ```
@@ -134,7 +134,7 @@ $verification = KycVerification::where('user_id', $user->id)
     ->latest()
     ->first();
 
-if ($verification && $verification->isVerified()) {
+if ($verification && $verification->status === \MetaDraw\Kyc\Enums\KycStatus::Verified) {
     // User is KYC verified
 }
 ```
@@ -142,7 +142,7 @@ if ($verification && $verification->isVerified()) {
 ### Check if User Has Uploaded All Documents
 
 ```php
-if ($verification->hasAllDocuments()) {
+if ($verification->id_front_url && $verification->id_back_url) {
     // User has uploaded both front and back of ID
 }
 ```
@@ -194,7 +194,7 @@ class YourKycProvider implements KycProviderInterface
     {
         // Check status with your provider
         return [
-            'status' => 'verified', // or 'pending', 'processing', 'rejected'
+            'status' => \MetaDraw\Kyc\Enums\KycStatus::Verified, // Return KycStatus enum
             'message' => 'Verification completed'
         ];
     }

@@ -35,6 +35,11 @@ class KycVerificationRepository
         return $verification->update([$field => $url]);
     }
 
+    public function findById(int $id): ?KycVerification
+    {
+        return KycVerification::query()->find($id);
+    }
+
     public function update(KycVerification $verification, array $data): bool
     {
         return $verification->update($data);

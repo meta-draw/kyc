@@ -16,14 +16,14 @@ class KycVerificationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nationality' => 'required|string|size:2|uppercase',
-            'resident_country' => 'required|string|size:2|uppercase',
+            'nationality' => 'required|string|size:2',
+            'resident_country' => 'required|string|size:2',
             'dob' => 'required|date|before:today',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'document_type' => 'required|string|in:passport,id_card,driver_license',
-            'country_of_issue' => 'required|string|size:2|uppercase',
+            'country_of_issue' => 'required|string|size:2',
             'document_number' => 'required|string|max:255',
             'document_issue_date' => 'required|date|before_or_equal:today',
             'document_expiry_date' => 'required|date|after:today',

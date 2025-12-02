@@ -30,7 +30,7 @@ class KycVerificationController extends Controller
         );
         
         return response()->json([
-            'isSuccess' => $result['success'],
+            'is_success' => $result['success'],
             'message' => $result['message'],
         ]);
     }
@@ -49,7 +49,7 @@ class KycVerificationController extends Controller
         }
         
         // Check with third-party provider for latest status
-        $this->kycService->checkVerificationStatus($verification);
+        $this->kycService->checkVerificationStatus($verification->id);
         
         return response()->json([
             'status' => $verification->fresh()->status->value
@@ -65,7 +65,7 @@ class KycVerificationController extends Controller
             
         if (!$verification) {
             return response()->json([
-                'isSuccess' => false,
+                'is_success' => false,
                 'message' => 'No active KYC verification found',
             ], 404);
         }
@@ -83,14 +83,14 @@ class KycVerificationController extends Controller
             
             if ($updated) {
                 return response()->json([
-                    'isSuccess' => true,
+                    'is_success' => true,
                     'message' => 'Document uploaded successfully',
                 ]);
             }
         }
         
         return response()->json([
-            'isSuccess' => false,
+            'is_success' => false,
             'message' => 'Failed to upload document',
         ], 500);
     }

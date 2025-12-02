@@ -17,13 +17,18 @@ class UploadService
     /**
      * Upload a KYC document and return the URL
      */
-    public function uploadKycDocument(int $userId, string $type, UploadedFile $file): string
+    public function uploadKycDocument(int $userId, string $type, UploadedFile $file): ?string
     {
-        $filename = $this->generateFilename($userId, $type, $file);
+        $filename = $this->generateFilename($type, $file);
+        $directory = "kyc/$userId";
         
-        $path = Storage::disk($this->disk)->put($filename, $file);
+        $path = Storage::disk($this->disk)->putFileAs($directory, $file, $filename);
         
-        return Storage::disk($this->disk)->url($path);
+        if ($path) {
+            return Storage::disk($this->disk)->url($path);
+        }
+        
+        return null;
     }
 
     /**
@@ -44,11 +49,10 @@ class UploadService
     /**
      * Generate a unique filename for KYC documents
      */
-    protected function generateFilename(int $userId, string $type, UploadedFile $file): string
+    protected function generateFilename(string $type, UploadedFile $file): string
     {
         return sprintf(
-            'kyc/%s/%s-%s.%s',
-            $userId,
+            '%s-%s.%s',
             $type,
             uniqid(),
             $file->getClientOriginalExtension()
