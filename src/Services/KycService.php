@@ -6,6 +6,7 @@ use MetaDraw\Kyc\Contracts\KycProviderInterface;
 use MetaDraw\Kyc\Models\KycVerification;
 use MetaDraw\Kyc\Repositories\KycVerificationRepository;
 use MetaDraw\Kyc\Enums\KycStatus;
+use Carbon\Carbon;
 
 class KycService
 {
@@ -41,7 +42,7 @@ class KycService
                 };
                 
                 if ($result['status'] === 'verified') {
-                    $updateData['verified_at'] = now();
+                    $updateData['verified_at'] = Carbon::now();
                 }
                 
                 if ($result['status'] === 'rejected' && isset($result['message'])) {
@@ -50,37 +51,6 @@ class KycService
             }
             
             $this->repository->update($verification, $updateData);
-        }
-        
-        return $result;
-    }
-
-
-    /**
-     * Check verification status with third-party provider
-     */
-    public function checkVerificationStatus(KycVerification $verification): array
-    {
-        if (!$verification->reference_id) {
-            return [
-                'status' => $verification->status,
-                'message' => 'No reference ID available',
-            ];
-        }
-        
-        $result = $this->provider->checkStatus($verification->reference_id);
-        
-        // Update local status based on provider response
-        if ($result['status'] === 'verified' && $verification->status !== KycStatus::Verified) {
-            $this->repository->update($verification, [
-                'status' => KycStatus::Verified,
-                'verified_at' => now(),
-            ]);
-        } elseif ($result['status'] === 'rejected' && $verification->status !== KycStatus::Rejected) {
-            $this->repository->update($verification, [
-                'status' => KycStatus::Rejected,
-                'rejection_reason' => $result['message'] ?? 'Verification failed',
-            ]);
         }
         
         return $result;
