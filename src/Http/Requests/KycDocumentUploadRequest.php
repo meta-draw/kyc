@@ -18,16 +18,4 @@ class KycDocumentUploadRequest extends FormRequest
             'data' => 'required|file|image|max:10240', // 10MB max
         ];
     }
-
-    public function messages(): array
-    {
-        return [
-            'type.required' => 'Document type is required',
-            'type.in' => 'Document type must be id-front or id-back',
-            'data.required' => 'Document file is required',
-            'data.file' => 'Document must be a file',
-            'data.image' => 'Document must be an image (jpg, jpeg, png, bmp, gif, svg, or webp)',
-            'data.max' => 'Document size must not exceed 10MB',
-        ];
-    }
 }

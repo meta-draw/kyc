@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use MetaDraw\Kyc\Http\Controllers\KycVerificationController;
+use MetaDraw\Kyc\Http\Middleware\KycEnabled;
 
 // Build middleware array from config
 $middleware = [
-    \MetaDraw\Kyc\Http\Middleware\KycEnabled::class,
+    KycEnabled::class,
 ];
 
 // Add auth middleware from config
