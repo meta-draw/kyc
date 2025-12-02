@@ -33,41 +33,28 @@ php artisan migrate
 
 The package supports flexible authentication configuration. By default, it uses `auth:api` middleware.
 
-#### Using JWT Authentication
-
-If you're using `tymon/jwt-auth`:
+If your project uses a different authentication middleware (e.g., JWT), you can configure it:
 
 ```php
 // config/kyc.php
 'auth' => [
-    'middleware' => 'jwt.auth',
-    // or 'auth:api' if you configured JWT as api guard
+    'middleware' => 'auth:api', // Default value, works with JWT if configured as api guard
 ],
 ```
 
 Or via environment variable:
 
 ```bash
+# If you need to use a different middleware
 KYC_AUTH_MIDDLEWARE=jwt.auth
 ```
 
-#### Using Sanctum
+You can also add additional middleware:
 
 ```php
 // config/kyc.php
 'auth' => [
-    'middleware' => 'auth:sanctum',
-],
-```
-
-#### Custom Middleware
-
-You can use any custom middleware:
-
-```php
-// config/kyc.php
-'auth' => [
-    'middleware' => 'your-custom-middleware',
+    'middleware' => 'auth:api',
     'additional_middleware' => ['throttle:60,1'],
 ],
 ```
