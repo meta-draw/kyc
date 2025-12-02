@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create(config('kyc.table_prefix', 'kyc_') . 'verifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id');
             $table->string('nationality', 2);
             $table->string('resident_country', 2);
             $table->date('dob');
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->date('document_expiry_date');
             $table->string('id_front_url')->nullable();
             $table->string('id_back_url')->nullable();
-            $table->enum('status', ['pending', 'processing', 'verified', 'rejected', 'expired'])->default('pending');
+            $table->string('status')->default('pending');
             $table->text('rejection_reason')->nullable();
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
