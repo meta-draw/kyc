@@ -4,6 +4,9 @@ namespace MetaDraw\Kyc;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use MetaDraw\Kyc\Repositories\KycVerificationRepository;
+use MetaDraw\Kyc\Services\KycService;
+use MetaDraw\Kyc\Services\UploadService;
 
 class KycServiceProvider extends ServiceProvider
 {
@@ -17,11 +20,11 @@ class KycServiceProvider extends ServiceProvider
         );
         
         // Register repositories
-        $this->app->singleton(\MetaDraw\Kyc\Repositories\KycVerificationRepository::class);
+        $this->app->singleton(KycVerificationRepository::class);
         
         // Register services
-        $this->app->singleton(\MetaDraw\Kyc\Services\KycService::class);
-        $this->app->singleton(\MetaDraw\Kyc\Services\UploadService::class);
+        $this->app->singleton(KycService::class);
+        $this->app->singleton(UploadService::class);
     }
 
     /**

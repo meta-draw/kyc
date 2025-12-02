@@ -48,8 +48,11 @@ class KycVerificationController extends Controller
             ]);
         }
         
+        // Check with third-party provider for latest status
+        $this->kycService->checkVerificationStatus($verification);
+        
         return response()->json([
-            'status' => $verification->status->value
+            'status' => $verification->fresh()->status->value
         ]);
     }
 

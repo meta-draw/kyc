@@ -55,4 +55,51 @@ class KycService
         
         return $result;
     }
+
+    /**
+     * Check verification status with third-party provider and update local status
+     */
+    public function checkVerificationStatus(KycVerification $verification): array
+    {
+        if (!$verification->reference_id) {
+            return [
+                'status' => $verification->status->value,
+                'message' => 'No reference ID available',
+            ];
+        }
+        
+        $result = $this->provider->checkStatus($verification->reference_id);
+        
+        // Update local status based on provider response
+        $updateData = [];
+        
+        if (isset($result['status'])) {
+            $newStatus = match ($result['status']) {
+                'verified' => KycStatus::Verified,
+                'rejected' => KycStatus::Rejected,
+                'processing' => KycStatus::Processing,
+                'expired' => KycStatus::Expired,
+                default => KycStatus::Pending,
+            };
+            
+            // Only update if status changed
+            if ($newStatus !== $verification->status) {
+                $updateData['status'] = $newStatus;
+                
+                if ($result['status'] === 'verified') {
+                    $updateData['verified_at'] = Carbon::now();
+                }
+                
+                if ($result['status'] === 'rejected' && isset($result['message'])) {
+                    $updateData['rejection_reason'] = $result['message'];
+                }
+                
+                if (!empty($updateData)) {
+                    $this->repository->update($verification, $updateData);
+                }
+            }
+        }
+        
+        return $result;
+    }
 }
