@@ -16,7 +16,7 @@ class KycService
     /**
      * Create a new KYC verification
      */
-    public function createVerification($user, array $data): ?KycVerification
+    public function createVerification($user, array $data): KycVerification
     {
         $data['user_id'] = $user->id;
         
@@ -24,10 +24,6 @@ class KycService
         unset($data['no_existing_verification']);
         
         $verification = $this->repository->create($data);
-        
-        if (!$verification) {
-            return null;
-        }
         
         // Submit to third-party provider if available
         if ($this->provider) {

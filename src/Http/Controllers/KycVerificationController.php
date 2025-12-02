@@ -29,17 +29,10 @@ class KycVerificationController extends Controller
             $request->validated()
         );
         
-        if ($verification) {
-            return response()->json([
-                'isSuccess' => true,
-                'message' => 'KYC verification submitted successfully',
-            ]);
-        }
-        
         return response()->json([
-            'isSuccess' => false,
-            'message' => 'Failed to submit KYC verification',
-        ], 500);
+            'isSuccess' => true,
+            'message' => 'KYC verification submitted successfully',
+        ]);
     }
 
     /**
