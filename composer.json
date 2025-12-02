@@ -1,0 +1,21 @@
+{
+    "name": "meta-draw/kyc",
+    "description": "KYC package for Laravel",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MetaDraw\\Kyc\\": "src/"
+        }
+    },
+    "require": {
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MetaDraw\\Kyc\\KycServiceProvider"
+            ]
+        }
+    }
+}
