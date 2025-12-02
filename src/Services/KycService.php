@@ -6,7 +6,7 @@ use MetaDraw\Kyc\Contracts\KycProviderInterface;
 use MetaDraw\Kyc\Models\KycVerification;
 use MetaDraw\Kyc\Repositories\KycVerificationRepository;
 use MetaDraw\Kyc\Enums\KycStatus;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 class KycService
 {
