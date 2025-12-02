@@ -24,22 +24,22 @@ class KycVerificationController extends Controller
      */
     public function store(KycVerificationRequest $request): JsonResponse
     {
-        try {
-            $verification = $this->kycService->createVerification(
-                $request->user(),
-                $request->validated()
-            );
-            
+        $verification = $this->kycService->createVerification(
+            $request->user(),
+            $request->validated()
+        );
+        
+        if ($verification) {
             return response()->json([
                 'isSuccess' => true,
                 'message' => 'KYC verification submitted successfully',
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'isSuccess' => false,
-                'message' => 'Failed to submit KYC verification: ' . $e->getMessage(),
-            ], 500);
         }
+        
+        return response()->json([
+            'isSuccess' => false,
+            'message' => 'Failed to submit KYC verification',
+        ], 500);
     }
 
     /**
@@ -68,35 +68,37 @@ class KycVerificationController extends Controller
      */
     public function upload(KycDocumentUploadRequest $request): JsonResponse
     {
-        try {
-            $verification = $this->repository->findPendingOrProcessingByUserId($request->user()->id);
-                
-            if (!$verification) {
-                return response()->json([
-                    'isSuccess' => false,
-                    'message' => 'No active KYC verification found',
-                ], 404);
-            }
+        $verification = $this->repository->findPendingOrProcessingByUserId($request->user()->id);
             
-            // Upload file and get URL
-            $url = $this->uploadService->uploadKycDocument(
-                $verification->user_id,
-                $request->validated()['type'],
-                $request->file('data')
-            );
-            
-            // Update the URL in the verification record
-            $this->repository->updateDocumentUrl($verification, $request->validated()['type'], $url);
-            
-            return response()->json([
-                'isSuccess' => true,
-                'message' => 'Document uploaded successfully',
-            ]);
-        } catch (\Exception $e) {
+        if (!$verification) {
             return response()->json([
                 'isSuccess' => false,
-                'message' => 'Failed to upload document: ' . $e->getMessage(),
-            ], 500);
+                'message' => 'No active KYC verification found',
+            ], 404);
         }
+        
+        // Upload file and get URL
+        $url = $this->uploadService->uploadKycDocument(
+            $verification->user_id,
+            $request->validated()['type'],
+            $request->file('data')
+        );
+        
+        if ($url) {
+            // Update the URL in the verification record
+            $updated = $this->repository->updateDocumentUrl($verification, $request->validated()['type'], $url);
+            
+            if ($updated) {
+                return response()->json([
+                    'isSuccess' => true,
+                    'message' => 'Document uploaded successfully',
+                ]);
+            }
+        }
+        
+        return response()->json([
+            'isSuccess' => false,
+            'message' => 'Failed to upload document',
+        ], 500);
     }
 }

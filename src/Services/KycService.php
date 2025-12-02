@@ -16,18 +16,22 @@ class KycService
     /**
      * Create a new KYC verification
      */
-    public function createVerification($user, array $data): KycVerification
+    public function createVerification($user, array $data): ?KycVerification
     {
         // Check if user already has an active verification
         $existingVerification = $this->repository->findActiveByUserId($user->id);
             
         if ($existingVerification) {
-            throw new \Exception('An active KYC verification already exists');
+            return null;
         }
         
         $data['user_id'] = $user->id;
         
         $verification = $this->repository->create($data);
+        
+        if (!$verification) {
+            return null;
+        }
         
         // Submit to third-party provider if available
         if ($this->provider) {
