@@ -3,6 +3,7 @@
 namespace MetaDraw\Kyc\Repositories;
 
 use MetaDraw\Kyc\Models\KycVerification;
+use MetaDraw\Kyc\Enums\KycStatus;
 use Illuminate\Database\Eloquent\Collection;
 
 class KycVerificationRepository
@@ -38,7 +39,7 @@ class KycVerificationRepository
     {
         return $this->model
             ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'processing', 'verified'])
+            ->whereIn('status', [KycStatus::Pending, KycStatus::Processing, KycStatus::Verified])
             ->latest()
             ->first();
     }
@@ -47,7 +48,7 @@ class KycVerificationRepository
     {
         return $this->model
             ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'processing'])
+            ->whereIn('status', [KycStatus::Pending, KycStatus::Processing])
             ->latest()
             ->first();
     }
@@ -58,7 +59,7 @@ class KycVerificationRepository
         return $verification->update([$field => $url]);
     }
 
-    public function updateStatus(KycVerification $verification, string $status): bool
+    public function updateStatus(KycVerification $verification, KycStatus $status): bool
     {
         return $verification->update(['status' => $status]);
     }

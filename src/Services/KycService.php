@@ -5,6 +5,7 @@ namespace MetaDraw\Kyc\Services;
 use MetaDraw\Kyc\Contracts\KycProviderInterface;
 use MetaDraw\Kyc\Models\KycVerification;
 use MetaDraw\Kyc\Repositories\KycVerificationRepository;
+use MetaDraw\Kyc\Enums\KycStatus;
 
 class KycService
 {
@@ -52,14 +53,14 @@ class KycService
         $result = $this->provider->checkStatus($verification->reference_id);
         
         // Update local status based on provider response
-        if ($result['status'] === 'verified' && $verification->status !== 'verified') {
+        if ($result['status'] === 'verified' && $verification->status !== KycStatus::Verified) {
             $this->repository->update($verification, [
-                'status' => 'verified',
+                'status' => KycStatus::Verified,
                 'verified_at' => now(),
             ]);
-        } elseif ($result['status'] === 'rejected' && $verification->status !== 'rejected') {
+        } elseif ($result['status'] === 'rejected' && $verification->status !== KycStatus::Rejected) {
             $this->repository->update($verification, [
-                'status' => 'rejected',
+                'status' => KycStatus::Rejected,
                 'rejection_reason' => $result['message'] ?? 'Verification failed',
             ]);
         }

@@ -4,6 +4,7 @@ namespace MetaDraw\Kyc\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use MetaDraw\Kyc\Enums\KycStatus;
 
 class KycVerification extends Model
 {
@@ -33,6 +34,7 @@ class KycVerification extends Model
         'document_issue_date' => 'date',
         'document_expiry_date' => 'date',
         'verified_at' => 'datetime',
+        'status' => KycStatus::class,
     ];
 
     public function getTable()
@@ -43,26 +45,6 @@ class KycVerification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('auth.providers.users.model'));
-    }
-
-    public function isPending(): bool
-    {
-        return $this->status === 'pending';
-    }
-
-    public function isProcessing(): bool
-    {
-        return $this->status === 'processing';
-    }
-
-    public function isVerified(): bool
-    {
-        return $this->status === 'verified';
-    }
-
-    public function isRejected(): bool
-    {
-        return $this->status === 'rejected';
     }
 
     public function hasAllDocuments(): bool
