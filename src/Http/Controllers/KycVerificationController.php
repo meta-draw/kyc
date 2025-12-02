@@ -6,19 +6,19 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
-use MetaDraw\Kyc\Models\KycVerification;
 use MetaDraw\Kyc\Http\Requests\KycVerificationRequest;
 use MetaDraw\Kyc\Http\Requests\KycDocumentUploadRequest;
 use MetaDraw\Kyc\Services\KycService;
+use MetaDraw\Kyc\Services\UploadService;
+use MetaDraw\Kyc\Repositories\KycVerificationRepository;
 
 class KycVerificationController extends Controller
 {
-    protected KycService $kycService;
-
-    public function __construct(KycService $kycService)
-    {
-        $this->kycService = $kycService;
-    }
+    public function __construct(
+        protected KycService $kycService,
+        protected UploadService $uploadService,
+        protected KycVerificationRepository $repository
+    ) {}
 
     /**
      * Create a new KYC verification
@@ -54,9 +54,7 @@ class KycVerificationController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
-        $verification = KycVerification::where('user_id', $request->user()->id)
-            ->latest()
-            ->first();
+        $verification = $this->repository->findByUserId($request->user()->id);
             
         if (!$verification) {
             return response()->json([
@@ -64,8 +62,11 @@ class KycVerificationController extends Controller
             ]);
         }
         
+        // Check with third-party provider for latest status
+        $this->kycService->checkVerificationStatus($verification);
+        
         return response()->json([
-            'status' => $verification->status
+            'status' => $verification->fresh()->status
         ]);
     }
 
@@ -75,10 +76,7 @@ class KycVerificationController extends Controller
     public function upload(KycDocumentUploadRequest $request): JsonResponse
     {
         try {
-            $verification = KycVerification::where('user_id', $request->user()->id)
-                ->whereIn('status', ['pending', 'processing'])
-                ->latest()
-                ->first();
+            $verification = $this->repository->findPendingOrProcessingByUserId($request->user()->id);
                 
             if (!$verification) {
                 return response()->json([
@@ -87,20 +85,19 @@ class KycVerificationController extends Controller
                 ], 404);
             }
             
-            $url = $this->kycService->uploadDocument(
-                $verification,
+            // Upload file and get URL
+            $url = $this->uploadService->uploadKycDocument(
+                $verification->user_id,
                 $request->validated()['type'],
                 $request->file('data')
             );
             
             // Update the URL in the verification record
-            $field = $request->validated()['type'] === 'id-front' ? 'id_front_url' : 'id_back_url';
-            $verification->update([$field => $url]);
+            $this->repository->updateDocumentUrl($verification, $request->validated()['type'], $url);
             
-            // Check if all documents are uploaded and update status
-            if ($verification->fresh()->hasAllDocuments()) {
-                $verification->update(['status' => 'processing']);
-            }
+            // Process document upload (submit to third-party if ready)
+            $verification = $verification->fresh();
+            $this->kycService->processDocumentUpload($verification);
             
             return response()->json([
                 'isSuccess' => true,

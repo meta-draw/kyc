@@ -2,21 +2,24 @@
 
 namespace MetaDraw\Kyc\Services;
 
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
+use MetaDraw\Kyc\Contracts\KycProviderInterface;
 use MetaDraw\Kyc\Models\KycVerification;
+use MetaDraw\Kyc\Repositories\KycVerificationRepository;
 
 class KycService
 {
+    public function __construct(
+        protected KycVerificationRepository $repository,
+        protected KycProviderInterface $provider
+    ) {}
+
     /**
      * Create a new KYC verification
      */
     public function createVerification($user, array $data): KycVerification
     {
         // Check if user already has an active verification
-        $existingVerification = KycVerification::where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'processing', 'verified'])
-            ->first();
+        $existingVerification = $this->repository->findActiveByUserId($user->id);
             
         if ($existingVerification) {
             throw new \Exception('An active KYC verification already exists');
@@ -24,45 +27,68 @@ class KycService
         
         $data['user_id'] = $user->id;
         
-        return KycVerification::create($data);
+        $verification = $this->repository->create($data);
+        
+        // Submit to third-party provider
+        $result = $this->provider->verify($verification);
+        
+        if ($result['success'] && isset($result['data']['reference_id'])) {
+            $this->repository->update($verification, [
+                'reference_id' => $result['data']['reference_id'],
+            ]);
+        }
+        
+        return $verification;
     }
 
     /**
-     * Upload a document to S3 and return the URL
+     * Process documents after upload
      */
-    public function uploadDocument(KycVerification $verification, string $type, UploadedFile $file): string
+    public function processDocumentUpload(KycVerification $verification): void
     {
-        // Generate a unique filename
-        $filename = sprintf(
-            'kyc/%s/%s-%s.%s',
-            $verification->user_id,
-            $type,
-            uniqid(),
-            $file->getClientOriginalExtension()
-        );
-        
-        // Upload to S3 (or configured disk)
-        $disk = config('kyc.storage.disk', 's3');
-        $path = Storage::disk($disk)->put($filename, $file);
-        
-        // Return the full URL
-        return Storage::disk($disk)->url($path);
+        if ($verification->hasAllDocuments() && $verification->reference_id) {
+            // Submit documents to third-party provider
+            $result = $this->provider->submitDocuments(
+                $verification->reference_id,
+                [
+                    'id_front_url' => $verification->id_front_url,
+                    'id_back_url' => $verification->id_back_url,
+                ]
+            );
+            
+            if ($result['success']) {
+                $this->repository->updateStatus($verification, 'processing');
+            }
+        }
     }
 
     /**
-     * Process KYC verification (placeholder for actual verification logic)
+     * Check verification status with third-party provider
      */
-    public function processVerification(KycVerification $verification): void
+    public function checkVerificationStatus(KycVerification $verification): array
     {
-        // This is where you would integrate with external KYC verification services
-        // For now, we'll just update the status
+        if (!$verification->reference_id) {
+            return [
+                'status' => $verification->status,
+                'message' => 'No reference ID available',
+            ];
+        }
         
-        if ($verification->hasAllDocuments()) {
-            // Simulate verification process
-            $verification->update([
+        $result = $this->provider->checkStatus($verification->reference_id);
+        
+        // Update local status based on provider response
+        if ($result['status'] === 'verified' && $verification->status !== 'verified') {
+            $this->repository->update($verification, [
                 'status' => 'verified',
                 'verified_at' => now(),
             ]);
+        } elseif ($result['status'] === 'rejected' && $verification->status !== 'rejected') {
+            $this->repository->update($verification, [
+                'status' => 'rejected',
+                'rejection_reason' => $result['message'] ?? 'Verification failed',
+            ]);
         }
+        
+        return $result;
     }
 }

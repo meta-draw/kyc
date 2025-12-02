@@ -24,6 +24,7 @@ return new class extends Migration
             $table->date('document_expiry_date');
             $table->string('id_front_url')->nullable();
             $table->string('id_back_url')->nullable();
+            $table->string('reference_id')->nullable()->index();
             $table->string('status')->default('pending')->index();
             $table->text('rejection_reason')->nullable();
             $table->timestamp('verified_at')->nullable();

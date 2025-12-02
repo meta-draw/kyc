@@ -16,7 +16,18 @@ class KycServiceProvider extends ServiceProvider
             __DIR__.'/../config/kyc.php', 'kyc'
         );
         
+        // Register contracts
+        $this->app->singleton(
+            \MetaDraw\Kyc\Contracts\KycProviderInterface::class,
+            \MetaDraw\Kyc\Providers\MockKycProvider::class
+        );
+        
+        // Register repositories
+        $this->app->singleton(\MetaDraw\Kyc\Repositories\KycVerificationRepository::class);
+        
+        // Register services
         $this->app->singleton(\MetaDraw\Kyc\Services\KycService::class);
+        $this->app->singleton(\MetaDraw\Kyc\Services\UploadService::class);
     }
 
     /**

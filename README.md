@@ -166,6 +166,74 @@ KYC_STORAGE_DISK=s3
 
 Make sure your S3 credentials are properly configured in `config/filesystems.php`.
 
+## Third-Party KYC Provider Integration
+
+The package includes an interface for integrating with third-party KYC verification providers. By default, it uses a mock provider for testing.
+
+### Implementing a Custom Provider
+
+Create a class that implements `KycProviderInterface`:
+
+```php
+use MetaDraw\Kyc\Contracts\KycProviderInterface;
+use MetaDraw\Kyc\Models\KycVerification;
+
+class YourKycProvider implements KycProviderInterface
+{
+    public function verify(KycVerification $verification): array
+    {
+        // Call your KYC provider's API
+        return [
+            'success' => true,
+            'message' => 'Verification submitted',
+            'data' => ['reference_id' => 'your-ref-id']
+        ];
+    }
+
+    public function checkStatus(string $referenceId): array
+    {
+        // Check status with your provider
+        return [
+            'status' => 'verified', // or 'pending', 'processing', 'rejected'
+            'message' => 'Verification completed'
+        ];
+    }
+
+    public function submitDocuments(string $referenceId, array $documents): array
+    {
+        // Submit documents to your provider
+        return [
+            'success' => true,
+            'message' => 'Documents submitted'
+        ];
+    }
+}
+```
+
+### Register Your Provider
+
+In your `AppServiceProvider`:
+
+```php
+use MetaDraw\Kyc\Contracts\KycProviderInterface;
+
+public function register()
+{
+    $this->app->singleton(KycProviderInterface::class, YourKycProvider::class);
+}
+```
+
+## Architecture
+
+The package follows a clean architecture pattern:
+
+- **Repository**: `KycVerificationRepository` handles all database queries
+- **Services**: 
+  - `KycService`: Business logic and third-party integration
+  - `UploadService`: File upload handling
+- **Contracts**: `KycProviderInterface` for third-party provider integration
+- **Controllers**: Handle HTTP requests and coordinate services
+
 ## License
 
 The MIT License (MIT).

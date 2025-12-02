@@ -22,6 +22,7 @@ class KycVerification extends Model
         'document_expiry_date',
         'id_front_url',
         'id_back_url',
+        'reference_id',
         'status',
         'rejection_reason',
         'verified_at',
