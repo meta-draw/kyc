@@ -168,7 +168,7 @@ Make sure your S3 credentials are properly configured in `config/filesystems.php
 
 ## Third-Party KYC Provider Integration
 
-The package includes an interface for integrating with third-party KYC verification providers. By default, it uses a mock provider for testing.
+The package includes an interface for integrating with third-party KYC verification providers. You need to implement and bind a provider to use the full verification features.
 
 ### Implementing a Custom Provider
 
@@ -222,6 +222,8 @@ public function register()
     $this->app->singleton(KycProviderInterface::class, YourKycProvider::class);
 }
 ```
+
+**Note**: If no provider is bound, the package will still work but will skip third-party verification calls and only manage local status.
 
 ## Architecture
 

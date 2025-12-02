@@ -10,7 +10,7 @@ class KycService
 {
     public function __construct(
         protected KycVerificationRepository $repository,
-        protected KycProviderInterface $provider
+        protected ?KycProviderInterface $provider = null
     ) {}
 
     /**
@@ -29,13 +29,15 @@ class KycService
         
         $verification = $this->repository->create($data);
         
-        // Submit to third-party provider
-        $result = $this->provider->verify($verification);
-        
-        if ($result['success'] && isset($result['data']['reference_id'])) {
-            $this->repository->update($verification, [
-                'reference_id' => $result['data']['reference_id'],
-            ]);
+        // Submit to third-party provider if available
+        if ($this->provider) {
+            $result = $this->provider->verify($verification);
+            
+            if ($result['success'] && isset($result['data']['reference_id'])) {
+                $this->repository->update($verification, [
+                    'reference_id' => $result['data']['reference_id'],
+                ]);
+            }
         }
         
         return $verification;
@@ -46,17 +48,22 @@ class KycService
      */
     public function processDocumentUpload(KycVerification $verification): void
     {
-        if ($verification->hasAllDocuments() && $verification->reference_id) {
-            // Submit documents to third-party provider
-            $result = $this->provider->submitDocuments(
-                $verification->reference_id,
-                [
-                    'id_front_url' => $verification->id_front_url,
-                    'id_back_url' => $verification->id_back_url,
-                ]
-            );
-            
-            if ($result['success']) {
+        if ($verification->hasAllDocuments()) {
+            if ($this->provider && $verification->reference_id) {
+                // Submit documents to third-party provider
+                $result = $this->provider->submitDocuments(
+                    $verification->reference_id,
+                    [
+                        'id_front_url' => $verification->id_front_url,
+                        'id_back_url' => $verification->id_back_url,
+                    ]
+                );
+                
+                if ($result['success']) {
+                    $this->repository->updateStatus($verification, 'processing');
+                }
+            } else {
+                // No provider configured, just mark as processing
                 $this->repository->updateStatus($verification, 'processing');
             }
         }
@@ -67,10 +74,10 @@ class KycService
      */
     public function checkVerificationStatus(KycVerification $verification): array
     {
-        if (!$verification->reference_id) {
+        if (!$this->provider || !$verification->reference_id) {
             return [
                 'status' => $verification->status,
-                'message' => 'No reference ID available',
+                'message' => 'No provider configured or reference ID available',
             ];
         }
         
