@@ -18,14 +18,10 @@ class KycService
      */
     public function createVerification($user, array $data): ?KycVerification
     {
-        // Check if user already has an active verification
-        $existingVerification = $this->repository->findActiveByUserId($user->id);
-            
-        if ($existingVerification) {
-            return null;
-        }
-        
         $data['user_id'] = $user->id;
+        
+        // Remove validation field before creating
+        unset($data['no_existing_verification']);
         
         $verification = $this->repository->create($data);
         

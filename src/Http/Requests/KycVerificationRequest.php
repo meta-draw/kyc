@@ -3,6 +3,7 @@
 namespace MetaDraw\Kyc\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use MetaDraw\Kyc\Repositories\KycVerificationRepository;
 
 class KycVerificationRequest extends FormRequest
 {
@@ -25,11 +26,16 @@ class KycVerificationRequest extends FormRequest
             'document_number' => 'required|string|max:255',
             'document_issue_date' => 'required|date|before_or_equal:today',
             'document_expiry_date' => 'required|date|after:today',
+            'no_existing_verification' => 'required|accepted',
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        // Check if user already has an active verification
+        $repository = app(KycVerificationRepository::class);
+        $existingVerification = $repository->findActiveByUserId($this->user()->id);
+        
         $this->merge([
             'nationality' => strtoupper($this->nationality ?? ''),
             'resident_country' => strtoupper($this->residentCountry ?? ''),
@@ -41,6 +47,7 @@ class KycVerificationRequest extends FormRequest
             'document_number' => $this->documentNumber ?? '',
             'document_issue_date' => $this->documentIssueDate ?? '',
             'document_expiry_date' => $this->documentExpiryDate ?? '',
+            'no_existing_verification' => $existingVerification ? false : true,
         ]);
     }
 }
