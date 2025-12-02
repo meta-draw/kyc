@@ -46,9 +46,4 @@ class KycVerification extends Model
     {
         return $this->belongsTo(config('auth.providers.users.model'));
     }
-
-    public function hasAllDocuments(): bool
-    {
-        return $this->id_front_url && $this->id_back_url;
-    }
 }
