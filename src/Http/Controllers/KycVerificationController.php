@@ -24,14 +24,14 @@ class KycVerificationController extends Controller
      */
     public function store(KycVerificationRequest $request): JsonResponse
     {
-        $verification = $this->kycService->createVerification(
+        $result = $this->kycService->createVerification(
             $request->user(),
             $request->validated()
         );
         
         return response()->json([
-            'isSuccess' => true,
-            'message' => 'KYC verification submitted successfully',
+            'isSuccess' => $result['success'],
+            'message' => $result['message'],
         ]);
     }
 

@@ -17,7 +17,7 @@ class KycService
     /**
      * Create a new KYC verification
      */
-    public function createVerification($user, array $data): KycVerification
+    public function createVerification($user, array $data): array
     {
         $data['user_id'] = $user->id;
         
@@ -32,9 +32,15 @@ class KycService
                     'reference_id' => $result['data']['reference_id'],
                 ]);
             }
+            
+            return $result;
         }
         
-        return $verification;
+        // No provider configured - return default success
+        return [
+            'success' => true,
+            'message' => 'KYC verification submitted successfully (no provider configured)',
+        ];
     }
 
 
