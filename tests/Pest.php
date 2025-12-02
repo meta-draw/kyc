@@ -1,6 +1,8 @@
 <?php
 
+use MetaDraw\Kyc\Enums\KycStatus;
 use MetaDraw\Kyc\KycServiceProvider;
+use MetaDraw\Kyc\Models\KycVerification;
 use Orchestra\Testbench\TestCase;
 
 uses(TestCase::class)->in(__DIR__);
@@ -30,7 +32,7 @@ function getEnvironmentSetUp($app)
 // Add test helpers
 function createKycVerification(array $attributes = [])
 {
-    return \MetaDraw\Kyc\Models\KycVerification::create(array_merge([
+    return KycVerification::create(array_merge([
         'user_id' => 1,
         'nationality' => 'US',
         'resident_country' => 'US',
@@ -42,6 +44,6 @@ function createKycVerification(array $attributes = [])
         'document_number' => '123456789',
         'document_issue_date' => '2020-01-01',
         'document_expiry_date' => '2030-01-01',
-        'status' => \MetaDraw\Kyc\Enums\KycStatus::Pending,
+        'status' => KycStatus::Pending,
     ], $attributes));
 }
