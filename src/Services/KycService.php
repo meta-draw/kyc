@@ -11,7 +11,7 @@ class KycService
 {
     public function __construct(
         protected KycVerificationRepository $repository,
-        protected ?KycProviderInterface $provider = null
+        protected KycProviderInterface $provider
     ) {}
 
     /**
@@ -23,24 +23,16 @@ class KycService
         
         $verification = $this->repository->create($data);
         
-        // Submit to third-party provider if available
-        if ($this->provider) {
-            $result = $this->provider->verify($verification);
-            
-            if ($result['success'] && isset($result['data']['reference_id'])) {
-                $this->repository->update($verification, [
-                    'reference_id' => $result['data']['reference_id'],
-                ]);
-            }
-            
-            return $result;
+        // Submit to third-party provider
+        $result = $this->provider->verify($verification);
+        
+        if ($result['success'] && isset($result['data']['reference_id'])) {
+            $this->repository->update($verification, [
+                'reference_id' => $result['data']['reference_id'],
+            ]);
         }
         
-        // No provider configured - return default success
-        return [
-            'success' => true,
-            'message' => 'KYC verification submitted successfully (no provider configured)',
-        ];
+        return $result;
     }
 
 
@@ -49,10 +41,10 @@ class KycService
      */
     public function checkVerificationStatus(KycVerification $verification): array
     {
-        if (!$this->provider || !$verification->reference_id) {
+        if (!$verification->reference_id) {
             return [
                 'status' => $verification->status,
-                'message' => 'No provider configured or reference ID available',
+                'message' => 'No reference ID available',
             ];
         }
         
