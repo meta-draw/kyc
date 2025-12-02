@@ -4,49 +4,25 @@ namespace MetaDraw\Kyc\Repositories;
 
 use MetaDraw\Kyc\Models\KycVerification;
 use MetaDraw\Kyc\Enums\KycStatus;
-use Illuminate\Database\Eloquent\Collection;
 
 class KycVerificationRepository
 {
-    public function __construct(
-        protected KycVerification $model
-    ) {}
-
     public function create(array $data): KycVerification
     {
-        return $this->model->create($data);
-    }
-
-    public function update(KycVerification $verification, array $data): bool
-    {
-        return $verification->update($data);
-    }
-
-    public function findById(int $id): ?KycVerification
-    {
-        return $this->model->find($id);
+        return KycVerification::query()->create($data);
     }
 
     public function findByUserId(int $userId): ?KycVerification
     {
-        return $this->model
+        return KycVerification::query()
             ->where('user_id', $userId)
-            ->latest()
-            ->first();
-    }
-
-    public function findActiveByUserId(int $userId): ?KycVerification
-    {
-        return $this->model
-            ->where('user_id', $userId)
-            ->whereIn('status', [KycStatus::Pending, KycStatus::Processing, KycStatus::Verified])
             ->latest()
             ->first();
     }
 
     public function findPendingOrProcessingByUserId(int $userId): ?KycVerification
     {
-        return $this->model
+        return KycVerification::query()
             ->where('user_id', $userId)
             ->whereIn('status', [KycStatus::Pending, KycStatus::Processing])
             ->latest()
@@ -59,8 +35,8 @@ class KycVerificationRepository
         return $verification->update([$field => $url]);
     }
 
-    public function updateStatus(KycVerification $verification, KycStatus $status): bool
+    public function update(KycVerification $verification, array $data): bool
     {
-        return $verification->update(['status' => $status]);
+        return $verification->update($data);
     }
 }
