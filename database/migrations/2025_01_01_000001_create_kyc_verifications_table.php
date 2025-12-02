@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create(config('kyc.table_prefix', 'kyc_') . 'verifications', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->index();
             $table->string('nationality', 2);
             $table->string('resident_country', 2);
             $table->date('dob');
@@ -19,19 +19,15 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
             $table->string('document_type');
             $table->string('country_of_issue', 2);
-            $table->string('document_number');
+            $table->string('document_number')->index();
             $table->date('document_issue_date');
             $table->date('document_expiry_date');
             $table->string('id_front_url')->nullable();
             $table->string('id_back_url')->nullable();
-            $table->string('status')->default('pending');
+            $table->string('status')->default('pending')->index();
             $table->text('rejection_reason')->nullable();
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
-            
-            $table->index('user_id');
-            $table->index('status');
-            $table->index('document_number');
         });
     }
 
