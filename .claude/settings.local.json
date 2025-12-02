@@ -6,7 +6,10 @@
       "Bash(composer init:*)",
       "Bash(composer require:*)",
       "WebFetch(domain:laravel.com)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(git checkout:*)",
+      "Bash(composer install:*)",
+      "Bash(composer:*)"
     ],
     "deny": []
   }

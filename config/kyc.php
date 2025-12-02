@@ -7,6 +7,22 @@ return [
     'enabled' => env('KYC_ENABLED', true),
 
     /**
+     * Authentication configuration
+     */
+    'auth' => [
+        /**
+         * Authentication middleware to use
+         * Examples: 'auth:sanctum', 'auth:api', 'jwt.auth', custom middleware
+         */
+        'middleware' => env('KYC_AUTH_MIDDLEWARE', 'auth:api'),
+        
+        /**
+         * Additional middleware to apply
+         */
+        'additional_middleware' => [],
+    ],
+
+    /**
      * KYC verification levels
      */
     'levels' => [
@@ -31,5 +47,25 @@ return [
     'api' => [
         'base_url' => env('KYC_API_BASE_URL'),
         'timeout' => env('KYC_API_TIMEOUT', 30),
+    ],
+    
+    /**
+     * Route configuration
+     */
+    'routes' => [
+        /**
+         * API route prefix
+         */
+        'prefix' => 'api',
+        
+        /**
+         * Route name prefix
+         */
+        'name' => 'kyc.',
+        
+        /**
+         * Enable/disable routes registration
+         */
+        'enabled' => true,
     ],
 ];

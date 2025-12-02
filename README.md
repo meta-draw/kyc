@@ -2,6 +2,11 @@
 
 A comprehensive KYC (Know Your Customer) verification package for Laravel applications.
 
+## Requirements
+
+- PHP 8.0 or higher
+- Laravel 11.0 or higher
+
 ## Installation
 
 You can install the package via composer:
@@ -10,24 +15,149 @@ You can install the package via composer:
 composer require meta-draw/kyc
 ```
 
-## Configuration
-
-Publish the configuration file:
+### Publish Configuration
 
 ```bash
 php artisan vendor:publish --tag=kyc-config
 ```
 
-## Usage
-
-```php
-// TODO: Add usage examples
-```
-
-## Testing
+### Run Migrations
 
 ```bash
-composer test
+php artisan migrate
+```
+
+## Configuration
+
+### Authentication
+
+The package supports flexible authentication configuration. By default, it uses `auth:api` middleware.
+
+#### Using JWT Authentication
+
+If you're using `tymon/jwt-auth`:
+
+```php
+// config/kyc.php
+'auth' => [
+    'middleware' => 'jwt.auth',
+    // or 'auth:api' if you configured JWT as api guard
+],
+```
+
+Or via environment variable:
+
+```bash
+KYC_AUTH_MIDDLEWARE=jwt.auth
+```
+
+#### Using Sanctum
+
+```php
+// config/kyc.php
+'auth' => [
+    'middleware' => 'auth:sanctum',
+],
+```
+
+#### Custom Middleware
+
+You can use any custom middleware:
+
+```php
+// config/kyc.php
+'auth' => [
+    'middleware' => 'your-custom-middleware',
+    'additional_middleware' => ['throttle:60,1'],
+],
+```
+
+## API Endpoints
+
+### 1. Submit KYC Verification
+
+```
+POST /api/kyc-verification
+```
+
+Request body:
+```json
+{
+    "nationality": "US",
+    "residentCountry": "US",
+    "dob": "1990-01-01",
+    "firstName": "John",
+    "lastName": "Doe",
+    "middleName": "Michael",
+    "documentType": "passport",
+    "countryOfIssue": "US",
+    "documentNumber": "123456789",
+    "documentIssueDate": "2020-01-01",
+    "documentExpiryDate": "2030-01-01"
+}
+```
+
+Response:
+```json
+{
+    "isSuccess": true,
+    "message": "KYC verification submitted successfully"
+}
+```
+
+### 2. Get KYC Status
+
+```
+GET /api/kyc-verification
+```
+
+Response:
+```json
+{
+    "status": "pending" // or "processing", "verified", "rejected", "expired", "not_submitted"
+}
+```
+
+### 3. Upload Documents
+
+```
+POST /api/kyc-verification/upload
+```
+
+Form data:
+- `type`: "id-front" or "id-back"
+- `data`: Image file (max 10MB)
+
+Response:
+```json
+{
+    "isSuccess": true,
+    "message": "Document uploaded successfully"
+}
+```
+
+## Usage in Your Application
+
+### Get User's KYC Status
+
+```php
+use MetaDraw\Kyc\Models\KycVerification;
+
+$verification = KycVerification::where('user_id', $user->id)
+    ->latest()
+    ->first();
+
+if ($verification && $verification->isVerified()) {
+    // User is KYC verified
+}
+```
+
+### Check if User Has Uploaded All Documents
+
+```php
+if ($verification->hasAllDocuments()) {
+    // User has uploaded both front and back of ID
+}
 ```
 
 ## License
