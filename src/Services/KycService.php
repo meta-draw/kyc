@@ -5,7 +5,6 @@ namespace MetaDraw\Kyc\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use MetaDraw\Kyc\Models\KycVerification;
-use MetaDraw\Kyc\Models\KycDocument;
 
 class KycService
 {
@@ -29,32 +28,25 @@ class KycService
     }
 
     /**
-     * Upload a document for KYC verification
+     * Upload a document to S3 and return the URL
      */
-    public function uploadDocument(KycVerification $verification, string $type, UploadedFile $file): KycDocument
+    public function uploadDocument(KycVerification $verification, string $type, UploadedFile $file): string
     {
-        // Check if document type already exists
-        $existingDocument = $verification->documents()
-            ->where('type', $type)
-            ->first();
-            
-        if ($existingDocument) {
-            // Delete old file
-            Storage::disk('public')->delete($existingDocument->file_path);
-            $existingDocument->delete();
-        }
+        // Generate a unique filename
+        $filename = sprintf(
+            'kyc/%s/%s-%s.%s',
+            $verification->user_id,
+            $type,
+            uniqid(),
+            $file->getClientOriginalExtension()
+        );
         
-        // Store new file
-        $path = $file->store('kyc-documents/' . $verification->id, 'public');
+        // Upload to S3 (or configured disk)
+        $disk = config('kyc.storage.disk', 's3');
+        $path = Storage::disk($disk)->put($filename, $file);
         
-        return KycDocument::create([
-            'verification_id' => $verification->id,
-            'type' => $type,
-            'file_path' => $path,
-            'file_name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getMimeType(),
-            'file_size' => $file->getSize(),
-        ]);
+        // Return the full URL
+        return Storage::disk($disk)->url($path);
     }
 
     /**

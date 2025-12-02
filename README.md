@@ -160,6 +160,25 @@ if ($verification->hasAllDocuments()) {
 }
 ```
 
+## Storage Configuration
+
+By default, the package uploads files to S3. You can configure the storage disk:
+
+```php
+// config/kyc.php
+'storage' => [
+    'disk' => env('KYC_STORAGE_DISK', 's3'),
+],
+```
+
+Or via environment variable:
+
+```bash
+KYC_STORAGE_DISK=s3
+```
+
+Make sure your S3 credentials are properly configured in `config/filesystems.php`.
+
 ## License
 
 The MIT License (MIT).

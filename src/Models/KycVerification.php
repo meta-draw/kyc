@@ -4,7 +4,6 @@ namespace MetaDraw\Kyc\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class KycVerification extends Model
 {
@@ -21,6 +20,8 @@ class KycVerification extends Model
         'document_number',
         'document_issue_date',
         'document_expiry_date',
+        'id_front_url',
+        'id_back_url',
         'status',
         'rejection_reason',
         'verified_at',
@@ -41,11 +42,6 @@ class KycVerification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(config('auth.providers.users.model'));
-    }
-
-    public function documents(): HasMany
-    {
-        return $this->hasMany(KycDocument::class, 'verification_id');
     }
 
     public function isPending(): bool
@@ -70,9 +66,6 @@ class KycVerification extends Model
 
     public function hasAllDocuments(): bool
     {
-        $requiredTypes = ['id-front', 'id-back'];
-        $uploadedTypes = $this->documents->pluck('type')->toArray();
-        
-        return count(array_intersect($requiredTypes, $uploadedTypes)) === count($requiredTypes);
+        return $this->id_front_url && $this->id_back_url;
     }
 }

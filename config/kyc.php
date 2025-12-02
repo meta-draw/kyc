@@ -68,4 +68,15 @@ return [
          */
         'enabled' => true,
     ],
+    
+    /**
+     * Storage configuration
+     */
+    'storage' => [
+        /**
+         * Disk to use for file uploads
+         * Default: 's3'
+         */
+        'disk' => env('KYC_STORAGE_DISK', 's3'),
+    ],
 ];

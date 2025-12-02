@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('document_number');
             $table->date('document_issue_date');
             $table->date('document_expiry_date');
+            $table->string('id_front_url')->nullable();
+            $table->string('id_back_url')->nullable();
             $table->enum('status', ['pending', 'processing', 'verified', 'rejected', 'expired'])->default('pending');
             $table->text('rejection_reason')->nullable();
             $table->timestamp('verified_at')->nullable();

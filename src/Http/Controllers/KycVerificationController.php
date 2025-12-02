@@ -7,7 +7,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use MetaDraw\Kyc\Models\KycVerification;
-use MetaDraw\Kyc\Models\KycDocument;
 use MetaDraw\Kyc\Http\Requests\KycVerificationRequest;
 use MetaDraw\Kyc\Http\Requests\KycDocumentUploadRequest;
 use MetaDraw\Kyc\Services\KycService;
@@ -88,14 +87,18 @@ class KycVerificationController extends Controller
                 ], 404);
             }
             
-            $document = $this->kycService->uploadDocument(
+            $url = $this->kycService->uploadDocument(
                 $verification,
                 $request->validated()['type'],
                 $request->file('data')
             );
             
+            // Update the URL in the verification record
+            $field = $request->validated()['type'] === 'id-front' ? 'id_front_url' : 'id_back_url';
+            $verification->update([$field => $url]);
+            
             // Check if all documents are uploaded and update status
-            if ($verification->hasAllDocuments()) {
+            if ($verification->fresh()->hasAllDocuments()) {
                 $verification->update(['status' => 'processing']);
             }
             
