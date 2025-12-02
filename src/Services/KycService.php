@@ -20,9 +20,6 @@ class KycService
     {
         $data['user_id'] = $user->id;
         
-        // Remove validation field before creating
-        unset($data['no_existing_verification']);
-        
         $verification = $this->repository->create($data);
         
         // Submit to third-party provider if available

@@ -26,7 +26,7 @@ class KycVerificationRequest extends FormRequest
             'document_number' => 'required|string|max:255',
             'document_issue_date' => 'required|date|before_or_equal:today',
             'document_expiry_date' => 'required|date|after:today',
-            'no_existing_verification' => 'required|accepted',
+            'no_existing_verification' => 'required|accepted|exclude',
         ];
     }
 
