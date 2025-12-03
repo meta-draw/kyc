@@ -1,35 +1,13 @@
 <?php
 
 return [
-    /**
-     * Enable or disable KYC verification
-     */
-    'enabled' => env('KYC_ENABLED', true),
-
-    /**
-     * KYC verification levels
-     */
-    'levels' => [
-        'basic' => [
-            'name' => 'Basic Verification',
-            'requirements' => ['email', 'phone'],
-        ],
-        'advanced' => [
-            'name' => 'Advanced Verification', 
-            'requirements' => ['email', 'phone', 'identity', 'address'],
-        ],
+    'tencent' => [
+        'secret_id' => env('KYC_TENCENT_SECRET_ID'),
+        'secret_key' => env('KYC_TENCENT_SECRET_KEY'),
     ],
 
-    /**
-     * Database table prefix for KYC tables
-     */
-    'table_prefix' => 'kyc_',
-
-    /**
-     * API endpoints configuration
-     */
-    'api' => [
-        'base_url' => env('KYC_API_BASE_URL'),
-        'timeout' => env('KYC_API_TIMEOUT', 30),
+    'routes' => [
+        // Route middleware configuration, e.g., ['auth:api'] or ['auth:sanctum']
+        'middleware' => env('KYC_ROUTE_MIDDLEWARE') ? explode(',', env('KYC_ROUTE_MIDDLEWARE')) : [],
     ],
 ];

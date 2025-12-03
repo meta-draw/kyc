@@ -3,6 +3,8 @@
 namespace MetaDraw\Kyc;
 
 use Illuminate\Support\ServiceProvider;
+use MetaDraw\Kyc\Contracts\KycClient;
+use MetaDraw\Kyc\Services\TencentKycClient;
 
 class KycServiceProvider extends ServiceProvider
 {
@@ -13,6 +15,11 @@ class KycServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(
             __DIR__.'/../config/kyc.php', 'kyc'
+        );
+
+        $this->app->bind(
+            KycClient::class,
+            TencentKycClient::class
         );
     }
 
@@ -32,7 +39,7 @@ class KycServiceProvider extends ServiceProvider
         }
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'kyc');
     }
 }
