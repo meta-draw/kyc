@@ -15,65 +15,27 @@ class AliyunKycClient implements KycClient
     public function __construct()
     {
         $this->appCode = config('kyc.aliyun.app_code');
-        
-        if (empty($this->appCode)) {
-            throw new \InvalidArgumentException('KYC_ALIYUN_APP_CODE is required');
-        }
     }
 
     public function verify(string $idCard, string $mobile, string $realName): array
     {
-        try {
-            $response = Http::withHeaders([
-                    'Authorization' => 'APPCODE ' . $this->appCode,
-                ])
-                ->timeout(30)
-                ->get($this->host . $this->path, [
-                    'idcard' => $idCard,
-                    'mobile' => $mobile,
-                    'name' => $realName,
-                ]);
-
-            if (!$response->successful()) {
-                Log::error('Aliyun KYC API HTTP Error', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
-                
-                return [
-                    'status' => false,
-                    'reason' => 'API request failed with status: ' . $response->status(),
-                ];
-            }
-
-            $apiResponse = $response->json();
-            
-            if (!is_array($apiResponse)) {
-                Log::error('Aliyun KYC API Invalid Response', ['response' => $response->body()]);
-                
-                return [
-                    'status' => false,
-                    'reason' => 'Invalid API response format',
-                ];
-            }
-            
-            Log::info('Aliyun KYC API Response', $apiResponse);
-            
-            return [
-                'status' => $this->determineStatus($apiResponse),
-                'reason' => $this->determineReason($apiResponse),
-            ];
-        } catch (\Exception $e) {
-            Log::error('Aliyun KYC API Exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+        $response = Http::withHeaders([
+                'Authorization' => 'APPCODE ' . $this->appCode,
+            ])
+            ->get($this->host . $this->path, [
+                'idcard' => $idCard,
+                'mobile' => $mobile,
+                'name' => $realName,
             ]);
-            
-            return [
-                'status' => false,
-                'reason' => 'API call failed: ' . $e->getMessage(),
-            ];
-        }
+
+        $apiResponse = $response->json();
+        
+        Log::info('Aliyun KYC API Response', $apiResponse);
+        
+        return [
+            'status' => $this->determineStatus($apiResponse),
+            'reason' => $this->determineReason($apiResponse),
+        ];
     }
 
     private function determineStatus(array $response): bool
