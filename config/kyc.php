@@ -1,9 +1,8 @@
 <?php
 
 return [
-    'tencent' => [
-        'secret_id' => env('KYC_TENCENT_SECRET_ID'),
-        'secret_key' => env('KYC_TENCENT_SECRET_KEY'),
+    'aliyun' => [
+        'app_code' => env('KYC_ALIYUN_APP_CODE'),
     ],
 
     'routes' => [

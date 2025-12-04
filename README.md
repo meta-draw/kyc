@@ -1,6 +1,6 @@
 # Laravel KYC Package
 
-Laravel KYC verification package based on Tencent Cloud's mobile three-factor authentication.
+Laravel KYC verification package based on Aliyun's mobile three-factor authentication.
 
 ## Installation
 
@@ -22,11 +22,10 @@ Run migrations:
 php artisan migrate
 ```
 
-Add Tencent Cloud credentials to your `.env` file:
+Add Aliyun credentials to your `.env` file:
 
 ```
-KYC_TENCENT_SECRET_ID=your-secret-id
-KYC_TENCENT_SECRET_KEY=your-secret-key
+KYC_ALIYUN_APP_CODE=your-app-code
 ```
 
 ## Route Middleware Configuration
@@ -112,9 +111,10 @@ $result = $kycService->status($user->id);
 - `status`: boolean - Verification result (true: success, false: failure)
 - `reason`: string|null - Failure reason
   - `null`: Verification successful
-  - `"Information does not match"`: Information mismatch  
-  - `"No record found in carrier system"`: No record in carrier system
-  - `"API call failed"`: API call failed
+  - `"ID card, mobile number or name cannot be empty"`: Missing required fields
+  - `"The ID does not exist"`: Invalid ID card number
+  - `"Information does not match"`: Information mismatch
+  - `"System error, please try again later"`: Service temporarily unavailable
 
 ## Duplicate Verification Prevention
 
