@@ -40,22 +40,36 @@ class AliyunKycClient implements KycClient
 
     private function determineStatus(array $response): bool
     {
-        $success = $response['success'] ?? false;
-        $code = $response['code'] ?? null;
+        if (($response['code'] ?? null) !== 200) {
+            return false;
+        }
         
-        // Aliyun APIs commonly use code 200 for HTTP success, 0 for business success
-        return $success === true && ($code === 200 || $code === 0);
+        $result = $response['data']['result'] ?? null;
+        return $result === '0';
     }
 
     private function determineReason(array $response): ?string
     {
-        $success = $response['success'] ?? false;
         $code = $response['code'] ?? null;
         
-        if ($success === true && ($code === 200 || $code === 0)) {
-            return null;
+        if ($code !== 200) {
+            return match ($code) {
+                400 => 'Parameter error',
+                500 => 'System error, please contact service provider',
+                501 => 'Third-party service error',
+                604 => 'Interface disabled',
+                1001 => 'Other error',
+                default => $response['msg'] ?? 'Unknown error',
+            };
         }
         
-        return $response['msg'] ?? 'Unknown verification result';
+        $result = $response['data']['result'] ?? null;
+        
+        return match ($result) {
+            '0' => null,
+            '1' => 'Information does not match',
+            '2' => 'No record found',
+            default => 'Unknown verification result',
+        };
     }
 }
