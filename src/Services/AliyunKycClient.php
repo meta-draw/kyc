@@ -54,12 +54,12 @@ class AliyunKycClient implements KycClient
         
         if ($code !== 200) {
             return match ($code) {
-                400 => 'Parameter error',
-                500 => 'System error, please contact service provider',
-                501 => 'Third-party service error',
-                604 => 'Interface disabled',
-                1001 => 'Other error',
-                default => $response['msg'] ?? 'Unknown error',
+                400 => '参数错误',
+                500 => '系统异常，请联系服务商',
+                501 => '第三方服务异常',
+                604 => '接口停用',
+                1001 => '其他错误',
+                default => $response['msg'] ?? '未知错误',
             };
         }
         
@@ -67,9 +67,9 @@ class AliyunKycClient implements KycClient
         
         return match ($result) {
             '0' => null,
-            '1' => 'Information does not match',
-            '2' => 'No record found',
-            default => 'Unknown verification result',
+            '1' => '信息不匹配',
+            '2' => '无记录',
+            default => '未知验证结果',
         };
     }
 }

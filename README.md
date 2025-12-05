@@ -1,6 +1,6 @@
 # Laravel KYC Package
 
-Laravel KYC verification package based on Aliyun's mobile three-factor authentication.
+Laravel KYC verification package based on Aliyun Market's mobile three-factor authentication API. Verifies the consistency between Chinese ID card number, mobile phone number, and real name.
 
 ## Installation
 
@@ -27,6 +27,8 @@ Add Aliyun credentials to your `.env` file:
 ```
 KYC_ALIYUN_APP_CODE=your-app-code
 ```
+
+> **Note**: This package uses Aliyun Market's mobile three-factor authentication API. You need to purchase the service from Aliyun Market and obtain the AppCode.
 
 ## Route Middleware Configuration
 
@@ -57,9 +59,18 @@ POST /api/kyc/verify
 Request parameters:
 ```json
 {
-  "id_card": "ID card number",
-  "mobile": "Mobile number",
-  "real_name": "Real name"
+  "id_card": "18-digit Chinese ID card number",
+  "mobile": "11-digit Chinese mobile number",
+  "real_name": "Chinese real name"
+}
+```
+
+Example:
+```json
+{
+  "id_card": "110101199001011234",
+  "mobile": "13800138000",
+  "real_name": "张三"
 }
 ```
 
@@ -75,7 +86,7 @@ Failure response:
 ```json
 {
   "status": false,
-  "reason": "Information does not match"
+  "reason": "信息不匹配"
 }
 ```
 
@@ -96,9 +107,9 @@ $kycService = app(KycService::class);
 
 // Verify user
 $result = $kycService->verify(
-    '110101199001011234',  // ID card number
-    '13800138000',         // Mobile number
-    'John Doe',            // Real name
+    '110101199001011234',  // ID card number (18 digits)
+    '13800138000',         // Mobile number (11 digits)
+    '张三',                // Real name (Chinese name)
     $user->id              // User ID
 );
 
@@ -108,17 +119,58 @@ $result = $kycService->status($user->id);
 
 ## Verification Results
 
-- `status`: boolean - Verification result (true: success, false: failure)
-- `reason`: string|null - Failure reason
-  - `null`: Verification successful
-  - `"ID card, mobile number or name cannot be empty"`: Missing required fields
-  - `"The ID does not exist"`: Invalid ID card number
-  - `"Information does not match"`: Information mismatch
-  - `"System error, please try again later"`: Service temporarily unavailable
+- `status`: boolean - 验证结果 (true: 成功, false: 失败)
+- `reason`: string|null - 失败原因
+  - `null`: 验证成功 (信息一致)
+  - `"信息不匹配"`: 身份证号、手机号和姓名不匹配
+  - `"无记录"`: 运营商系统中无记录
+  - `"参数错误"`: 参数无效或缺失
+  - `"系统异常，请联系服务商"`: 系统错误
+  - `"第三方服务异常"`: 第三方服务不可用
+  - `"接口停用"`: API接口已停用
+  - `"其他错误"`: 其他错误，请查看API响应
 
 ## Duplicate Verification Prevention
 
-Users who have already been successfully verified will receive a 422 status code and "User already verified" error message when calling the verification endpoint again.
+已验证成功的用户再次调用验证接口时，会返回422状态码和"User already verified"错误信息。
+
+## API Response Details
+
+The package handles various response scenarios from Aliyun's API:
+
+### Successful Response (Raw API)
+```json
+{
+    "msg": "成功",
+    "success": true,
+    "code": 200,
+    "data": {
+        "order_no": "577564185899175936",
+        "result": "0",
+        "desc": "一致",
+        "channel": "cmcc",
+        "sex": "男",
+        "birthday": "19930123",
+        "address": "江西省遂川县"
+    }
+}
+```
+
+### Error Response (Raw API)
+```json
+{
+    "msg": "参数错误",
+    "success": false,
+    "code": 400,
+    "data": {}
+}
+```
+
+### Response Processing
+- **Success**: `code = 200` and `data.result = "0"`
+- **Information Mismatch**: `data.result = "1"`
+- **No Record**: `data.result = "2"`
+- **API Errors**: `code ≠ 200` (400, 500, 501, 604, 1001)
 
 ## License
 
