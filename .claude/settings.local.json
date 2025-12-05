@@ -6,7 +6,17 @@
       "Bash(composer init:*)",
       "Bash(composer require:*)",
       "WebFetch(domain:laravel.com)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "WebFetch(domain:market.cloud.tencent.com)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(mv:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:market.aliyun.com)",
+      "Bash(php:*)"
     ],
     "deny": []
   }
