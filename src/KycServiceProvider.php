@@ -5,9 +5,7 @@ namespace MetaDraw\Kyc;
 use Illuminate\Support\ServiceProvider;
 use MetaDraw\Kyc\Contracts\KycClient;
 use MetaDraw\Kyc\Services\AliyunKycClient;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Http\Request;
-use Illuminate\Cache\RateLimiting\Limit;
+use MetaDraw\Kyc\Http\Middleware\KycVerifyThrottle;
 
 class KycServiceProvider extends ServiceProvider
 {
@@ -44,25 +42,15 @@ class KycServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         
-        $this->configureRateLimiting();
+        $this->registerMiddleware();
     }
     
     /**
-     * Configure rate limiting for KYC routes.
+     * Register middleware.
      */
-    protected function configureRateLimiting(): void
+    protected function registerMiddleware(): void
     {
-        RateLimiter::for('kyc-verify', function (Request $request) {
-            $userId = $request->user()->id;
-            
-            return [
-                Limit::perMinute(1)->by($userId)->response(function () {
-                    return response()->json(['error' => '请求过于频繁，请1分钟后再试'], 429);
-                }),
-                Limit::perDay(10)->by($userId)->response(function () {
-                    return response()->json(['error' => '今日验证次数已达上限（10次）'], 429);
-                }),
-            ];
-        });
+        $router = $this->app->make('router');
+        $router->aliasMiddleware('kyc.verify.throttle', KycVerifyThrottle::class);
     }
 }
