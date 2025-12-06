@@ -5,6 +5,7 @@ namespace MetaDraw\Kyc;
 use Illuminate\Support\ServiceProvider;
 use MetaDraw\Kyc\Contracts\KycClient;
 use MetaDraw\Kyc\Services\AliyunKycClient;
+use Illuminate\Routing\Router;
 
 class KycServiceProvider extends ServiceProvider
 {
@@ -40,5 +41,16 @@ class KycServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        
+        $this->registerMiddleware();
+    }
+    
+    /**
+     * Register middleware.
+     */
+    protected function registerMiddleware(): void
+    {
+        $router = $this->app->make(Router::class);
+        $router->aliasMiddleware('kyc.verify.throttle', \MetaDraw\Kyc\Http\Middleware\KycVerifyThrottle::class);
     }
 }
